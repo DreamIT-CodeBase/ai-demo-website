@@ -46,8 +46,8 @@ const agents = [
     shortName: "Tenders",
     description: "Ask questions about tenders and documents.",
     suggestions: [
-      "Summarize the tender requirements",
-      "What are the eligibility criteria?",
+      "Summarize the emails in the shared mailbox and flag anything urgent",
+      "Scrape the latest tenders from Amref and NMS published in the last 3 days",
       "What are the important dates and deadlines?",
     ],
   },
