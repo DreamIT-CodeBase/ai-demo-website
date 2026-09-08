@@ -73,25 +73,25 @@ button {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 14px;
 
-  padding: 22px 20px 20px;
+  padding: 22px 20px 22px;
 
   border-bottom: 1px solid #eef0f4;
 }
 
 .brand-mark {
   width: 100%;
-  height: 62px;
+  height: 72px;
 
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
 
   border-radius: 9px;
 
-  background: #092943;
-  border: 1px solid #1a4866;
+  background: #ffffff;
+  border: 1px solid #dce7f0;
 
   box-shadow: 0 8px 18px rgba(20, 55, 90, 0.12);
 
@@ -99,10 +99,16 @@ button {
 }
 
 .brand-mark img {
-  width: 178px;
-  max-width: 90%;
   height: auto;
   object-fit: contain;
+}
+
+.brand-logo {
+  width: 140px;
+}
+
+.brand-partner-logo {
+  width: 96px;
 }
 
 .brand-mark-text {
@@ -1340,11 +1346,20 @@ button {
   }
 
   .brand-mark {
-    height: 54px;
+    height: 60px;
+    gap: 6px;
   }
 
   .brand-mark img {
-    width: 150px;
+    width: auto;
+  }
+
+  .brand-logo {
+    width: 93px;
+  }
+
+  .brand-partner-logo {
+    width: 63px;
   }
 
   .agent-description {
@@ -1389,5 +1404,656 @@ button {
 
   .powered {
     display: none;
+  }
+}
+
+/* =========================
+   AGENT CATALOG
+   ========================= */
+
+.catalog-page {
+  min-height: 100vh;
+  overflow-y: auto;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(8, 166, 194, 0.1), transparent 30%),
+    linear-gradient(135deg, #f7fbfd 0%, #eef6fa 100%);
+  color: #14253d;
+}
+
+.catalog-header {
+  min-height: 78px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 16px 6vw;
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid #dce7f0;
+}
+
+.catalog-brand-logos {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.catalog-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.dreamit-website-logo {
+  width: 205px;
+}
+
+.dreamit-website-logo img {
+  width: 100%;
+  height: auto;
+}
+
+.microsoft-partner-logo {
+  width: 190px;
+}
+
+.microsoft-partner-logo img {
+  width: 100%;
+  height: auto;
+}
+
+.catalog-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #66849c;
+  font-size: 11px;
+}
+
+.catalog-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+}
+
+.catalog-main {
+  width: min(1180px, calc(100% - 64px));
+  margin: 0 auto;
+  padding: 64px 0 72px;
+}
+
+.catalog-intro {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.catalog-eyebrow {
+  margin: 0 0 10px;
+  color: #078aa9;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.catalog-intro h1 {
+  margin: 0;
+  color: #102743;
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 1.1;
+  letter-spacing: -1px;
+}
+
+.catalog-description {
+  max-width: 540px;
+  margin: 14px 0 0;
+  color: #66849c;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.catalog-count {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  color: #66849c;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.catalog-count strong {
+  color: #102743;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.technology-nav {
+  display: flex;
+  gap: 8px;
+  margin-top: 48px;
+  padding-bottom: 12px;
+  overflow-x: auto;
+  border-bottom: 1px solid #dce7f0;
+}
+
+.technology-tab {
+  padding: 10px 15px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: #66849c;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.technology-tab:hover {
+  color: #12345a;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.technology-tab.active {
+  border-color: #b9e5f0;
+  background: #e5f6fb;
+  color: #078aa9;
+}
+
+.catalog-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 24px 0;
+}
+
+.catalog-search {
+  flex: 1;
+  max-width: 580px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border: 1px solid #cfe0ea;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.catalog-search:focus-within {
+  border-color: #8ed3e2;
+  box-shadow: 0 0 0 3px rgba(8, 166, 194, 0.08);
+}
+
+.catalog-search span {
+  color: #078aa9;
+  font-size: 24px;
+  line-height: 1;
+  transform: rotate(-20deg);
+}
+
+.catalog-search input {
+  width: 100%;
+  height: 45px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #18314f;
+  font-size: 13px;
+}
+
+.catalog-search input::placeholder {
+  color: #8aa0af;
+}
+
+.catalog-sort {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #66849c;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.catalog-sort select {
+  min-width: 155px;
+  height: 45px;
+  padding: 0 12px;
+  border: 1px solid #cfe0ea;
+  border-radius: 8px;
+  outline: none;
+  background: #ffffff;
+  color: #315c79;
+  font: inherit;
+  cursor: pointer;
+}
+
+.agent-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.agent-template-card {
+  min-height: 245px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 22px;
+  border: 1px solid #d7e6ef;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.91);
+  color: #14253d;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(20, 55, 90, 0.035);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.agent-template-card:hover {
+  border-color: #8ed3e2;
+  box-shadow: 0 15px 28px rgba(20, 55, 90, 0.1);
+  transform: translateY(-3px);
+}
+
+.agent-template-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.agent-template-icon {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: #12345a;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.agent-template-arrow {
+  color: #9daab6;
+  font-size: 19px;
+}
+
+.agent-template-body {
+  flex: 1;
+  padding-top: 24px;
+}
+
+.agent-template-technology {
+  color: #078aa9;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.agent-template-body h2 {
+  margin: 8px 0 7px;
+  color: #102743;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.agent-template-body p {
+  max-width: 300px;
+  color: #66849c;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.agent-template-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 17px;
+  border-top: 1px solid #edf2f5;
+  color: #315c79;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.agent-template-action span {
+  color: #078aa9;
+  font-size: 16px;
+}
+
+.catalog-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 72px 20px;
+  border: 1px dashed #bfd2dc;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.6);
+  color: #66849c;
+  font-size: 13px;
+}
+
+.catalog-empty strong {
+  color: #102743;
+  font-size: 17px;
+}
+
+.back-to-catalog {
+  width: 31px;
+  height: 31px;
+  margin-right: 2px;
+  border: 1px solid #cfe0ea;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #52728b;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.back-to-catalog:hover {
+  border-color: #8ed3e2;
+  color: #078aa9;
+}
+
+@media (max-width: 900px) {
+  .catalog-main {
+    width: min(100% - 36px, 680px);
+    padding-top: 42px;
+  }
+
+  .agent-catalog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .catalog-header {
+    padding: 14px 18px;
+  }
+
+  .catalog-brand-logos {
+    gap: 14px;
+  }
+
+  .dreamit-website-logo {
+    width: 145px;
+  }
+
+  .microsoft-partner-logo {
+    width: 138px;
+  }
+
+  .catalog-header-meta {
+    display: none;
+  }
+
+  .catalog-main {
+    width: calc(100% - 30px);
+    padding: 32px 0 46px;
+  }
+
+  .catalog-intro {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .catalog-count {
+    align-items: flex-start;
+  }
+
+  .catalog-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .catalog-search {
+    max-width: none;
+  }
+
+  .catalog-sort {
+    justify-content: space-between;
+  }
+
+  .catalog-sort select {
+    flex: 1;
+  }
+
+  .agent-catalog-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================
+   CATALOG FILTER RAIL
+   ========================= */
+
+.catalog-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  align-items: start;
+  gap: 28px;
+  margin-top: 48px;
+}
+
+.catalog-filters {
+  position: sticky;
+  top: 22px;
+  padding: 20px 16px;
+  border: 1px solid #dce7f0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 8px 18px rgba(20, 55, 90, 0.04);
+}
+
+.catalog-filters-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+  color: #18314f;
+  font-size: 14px;
+}
+
+.catalog-filter-chevron {
+  color: #52728b;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.catalog-filter-option {
+  min-height: 37px;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  color: #66849c;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.catalog-filter-option input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: #078aa9;
+  cursor: pointer;
+}
+
+.catalog-filter-option small {
+  min-width: 19px;
+  padding: 2px 5px;
+  border: 1px solid #dce7f0;
+  border-radius: 4px;
+  color: #7b92a3;
+  font-size: 10px;
+  text-align: center;
+}
+
+.catalog-results {
+  min-width: 0;
+}
+
+.catalog-results .technology-nav {
+  margin-top: 0;
+}
+
+/* =========================
+   COLLAPSIBLE CHAT SIDEBAR
+   ========================= */
+
+.sidebar {
+  position: relative;
+  transition: width 0.22s ease, min-width 0.22s ease;
+}
+
+.brand {
+  position: relative;
+}
+
+.sidebar-toggle {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  width: 23px;
+  height: 23px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #cfe0ea;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #52728b;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sidebar-toggle:hover {
+  border-color: #8ed3e2;
+  color: #078aa9;
+}
+
+.sidebar.collapsed {
+  width: 78px;
+  min-width: 78px;
+}
+
+.sidebar.collapsed .brand {
+  padding: 22px 10px;
+}
+
+.sidebar.collapsed .brand-mark {
+  height: 55px;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar.collapsed .brand-logo {
+  width: 42px;
+}
+
+.sidebar.collapsed .brand-partner-logo {
+  display: none;
+}
+
+.sidebar.collapsed .sidebar-label,
+.sidebar.collapsed .agent-info,
+.sidebar.collapsed .sidebar-footer span {
+  display: none;
+}
+
+.sidebar.collapsed .agents-list {
+  padding: 10px 8px;
+}
+
+.sidebar.collapsed .agent-item {
+  justify-content: center;
+  padding: 11px 4px;
+}
+
+.sidebar.collapsed .agent-icon {
+  width: 38px;
+  min-width: 38px;
+  height: 38px;
+}
+
+.sidebar.collapsed .sidebar-footer {
+  justify-content: center;
+  padding: 16px 8px;
+}
+
+@media (max-width: 900px) {
+  .catalog-layout {
+    grid-template-columns: 180px minmax(0, 1fr);
+    gap: 18px;
+  }
+}
+
+@media (max-width: 650px) {
+  .catalog-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 28px;
+  }
+
+  .catalog-filters {
+    position: static;
+    width: 100%;
+  }
+
+  .catalog-filter-option {
+    display: inline-grid;
+    width: 49%;
+  }
+
+  .catalog-results .technology-nav {
+    margin-top: 0;
+  }
+}
+
+/* =========================
+   CATALOG POLISH
+   ========================= */
+
+.catalog-main {
+  padding-top: 48px;
+}
+
+.catalog-intro h1 {
+  font-size: 40px;
+  letter-spacing: 0;
+}
+
+.catalog-layout {
+  margin-top: 32px;
+}
+
+.catalog-results .catalog-toolbar {
+  margin-top: 0;
+}
+
+.agent-catalog-grid {
+  gap: 18px;
+}
+
+.agent-template-card {
+  min-height: 230px;
+}
+
+@media (max-width: 650px) {
+  .catalog-main {
+    padding-top: 32px;
+  }
+
+  .catalog-intro h1 {
+    font-size: 30px;
   }
 }

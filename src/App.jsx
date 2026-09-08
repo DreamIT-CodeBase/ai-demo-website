@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import dreamItLogo from "./assets/dream-it-logo.png";
+import dreamItWebsiteLogo from "./assets/dreamit-new-logo.png";
+import microsoftPartnerLogo from "./assets/microsoft-solution-partner-logo.png";
 import "./App.css";
 
 const API_URL = "http://127.0.0.1:8000";
@@ -11,6 +12,9 @@ const agents = [
     id: "retailinfo",
     name: "RetailInfo",
     shortName: "Retail",
+    technology: "Microsoft Fabric",
+    technologyKey: "fabric",
+    createdAt: 4,
     description: "Get information about retail products and data.",
     suggestions: [
       "Show me 5 internal products",
@@ -22,6 +26,9 @@ const agents = [
     id: "productcomparison",
     name: "Product Comparison",
     shortName: "Compare",
+    technology: "Azure AI Foundry",
+    technologyKey: "foundry",
+    createdAt: 3,
     description: "Compare products and provide useful insights.",
     suggestions: [
       "Compare our products with competitor products",
@@ -33,6 +40,9 @@ const agents = [
     id: "email-teams-extractor",
     name: "Email & Teams Extractor",
     shortName: "Workspace",
+    technology: "Microsoft 365",
+    technologyKey: "microsoft-365",
+    createdAt: 2,
     description: "Extract and analyze information from emails and Teams.",
     suggestions: [
       "Show me my important emails",
@@ -44,6 +54,9 @@ const agents = [
     id: "Tender-agent",
     name: "Tender Agent",
     shortName: "Tenders",
+    technology: "Azure AI Foundry",
+    technologyKey: "foundry",
+    createdAt: 1,
     description: "Ask questions about tenders and documents.",
     suggestions: [
       "Summarize the emails in the shared mailbox and flag anything urgent",
@@ -62,6 +75,7 @@ const createAgentState = () => ({
 });
 
 function App() {
+  const [currentView, setCurrentView] = useState("catalog");
   const [selectedAgent, setSelectedAgent] = useState(agents[0]);
 
   const [agentStates, setAgentStates] = useState({
@@ -73,10 +87,39 @@ function App() {
 
   const [input, setInput] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
+  const [catalogSearch, setCatalogSearch] = useState("");
+  const [catalogTechnologies, setCatalogTechnologies] = useState([]);
+  const [catalogSort, setCatalogSort] = useState("newest");
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const abortControllers = useRef({});
 
   const currentState = agentStates[selectedAgent.id];
+
+  const filteredAgents = agents
+    .filter((agent) => {
+      const search = catalogSearch.trim().toLowerCase();
+      const matchesTechnology =
+        catalogTechnologies.length === 0 ||
+        catalogTechnologies.includes(agent.technologyKey);
+
+      if (!search) {
+        return matchesTechnology;
+      }
+
+      return (
+        matchesTechnology &&
+        [agent.name, agent.description, agent.technology]
+          .join(" ")
+          .toLowerCase()
+          .includes(search)
+      );
+    })
+    .sort((firstAgent, secondAgent) =>
+      catalogSort === "alphabetical"
+        ? firstAgent.name.localeCompare(secondAgent.name)
+        : secondAgent.createdAt - firstAgent.createdAt
+    );
 
   const updateAgentState = (agentId, updates) => {
     setAgentStates((prev) => ({
@@ -191,7 +234,7 @@ function App() {
 
           try {
             data = JSON.parse(line);
-          } catch (error) {
+          } catch {
             console.error(
               "Invalid stream data:",
               line
@@ -575,6 +618,19 @@ function App() {
     setSelectedFile(null);
   };
 
+  const openAgent = (agent) => {
+    handleAgentChange(agent);
+    setCurrentView("chat");
+  };
+
+  const toggleCatalogTechnology = (technologyKey) => {
+    setCatalogTechnologies((currentTechnologies) =>
+      currentTechnologies.includes(technologyKey)
+        ? currentTechnologies.filter((key) => key !== technologyKey)
+        : [...currentTechnologies, technologyKey]
+    );
+  };
+
   const handleSuggestionClick = (
     suggestion
   ) => {
@@ -600,26 +656,158 @@ function App() {
     }
   };
 
-  return (
-    <div className="app">
-      <aside className="sidebar">
-        <div className="brand">
-        <div className="brand-mark">
-          <img
-            src={dreamItLogo}
-            alt="Dream IT Consulting Services"
-          />
+  return currentView === "catalog" ? (
+    <div className="catalog-page">
+      <header className="catalog-header">
+        <div className="catalog-brand-logos">
+          <div className="catalog-logo dreamit-website-logo">
+            <img
+              src={dreamItWebsiteLogo}
+              alt="Dream IT Consulting Services"
+            />
+          </div>
+          <div className="catalog-logo microsoft-partner-logo">
+            <img
+              src={microsoftPartnerLogo}
+              alt="Microsoft Solutions Partner"
+            />
+          </div>
         </div>
 
+        <div className="catalog-header-meta">
+          <span className="catalog-status-dot"></span>
+          Services connected
+        </div>
+      </header>
+
+      <main className="catalog-main">
+        <div className="catalog-intro">
           <div>
-            <div className="brand-title">
-              AI Agent Workspace
+            <p className="catalog-eyebrow">AGENT CATALOG</p>
+            <h1>Choose an agent to get started</h1>
+            <p className="catalog-description">
+              Explore the agents available across your Microsoft and Azure workspace.
+            </p>
+          </div>
+
+          <div className="catalog-count">
+            <strong>{filteredAgents.length}</strong>
+            <span>available agents</span>
+          </div>
+        </div>
+
+        <div className="catalog-layout">
+          <aside className="catalog-filters" aria-label="Agent services and technologies">
+            <div className="catalog-filters-heading">
+              <strong>Services</strong>
+            </div>
+            {[
+              { key: "foundry", label: "Azure AI Foundry" },
+              { key: "fabric", label: "Microsoft Fabric" },
+              { key: "microsoft-365", label: "Microsoft 365" },
+            ].map((technology) => {
+              const count = agents.filter(
+                (agent) => agent.technologyKey === technology.key
+              ).length;
+              const isChecked = catalogTechnologies.includes(technology.key);
+
+              return (
+                <label className="catalog-filter-option" key={technology.key}>
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={() => toggleCatalogTechnology(technology.key)}
+                  />
+                  <span>{technology.label}</span>
+                  <small>{count}</small>
+                </label>
+              );
+            })}
+          </aside>
+
+          <section className="catalog-results">
+            <div className="catalog-toolbar">
+              <label className="catalog-search">
+                <span aria-hidden="true">⌕</span>
+                <input
+                  type="search"
+                  value={catalogSearch}
+                  onChange={(event) => setCatalogSearch(event.target.value)}
+                  placeholder="Search agents or technologies"
+                  aria-label="Search agents or technologies"
+                />
+              </label>
+
+              <label className="catalog-sort">
+                <span>Sort by</span>
+                <select
+                  value={catalogSort}
+                  onChange={(event) => setCatalogSort(event.target.value)}
+                  aria-label="Sort agents"
+                >
+                  <option value="newest">Newest agents</option>
+                  <option value="alphabetical">Alphabetical A-Z</option>
+                </select>
+              </label>
             </div>
 
-            <div className="brand-subtitle">
-               Cloud powered · Data driven
-            </div>
+            {filteredAgents.length > 0 ? (
+              <div className="agent-catalog-grid">
+                {filteredAgents.map((agent) => (
+                  <button
+                    key={agent.id}
+                    className="agent-template-card"
+                    onClick={() => openAgent(agent)}
+                    type="button"
+                  >
+                    <div className="agent-template-topline">
+                      <span className="agent-template-icon">{agent.shortName.charAt(0)}</span>
+                      <span className="agent-template-arrow" aria-hidden="true">&#8599;</span>
+                    </div>
+                    <div className="agent-template-body">
+                      <span className="agent-template-technology">{agent.technology}</span>
+                      <h2>{agent.name}</h2>
+                      <p>{agent.description}</p>
+                    </div>
+                    <span className="agent-template-action">Open agent <span aria-hidden="true">&#8594;</span></span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="catalog-empty">
+                <strong>No agents found</strong>
+                <span>Try another name, description, or technology.</span>
+              </div>
+            )}
+          </section>
+        </div>
+      </main>
+    </div>
+  ) : (
+    <div className="app">
+      <aside className={isSidebarCollapsed ? "sidebar collapsed" : "sidebar"}>
+        <div className="brand">
+          <div className="brand-mark">
+            <img
+              className="brand-logo"
+              src={dreamItWebsiteLogo}
+              alt="Dream IT Consulting Services"
+            />
+            <img
+              className="brand-partner-logo"
+              src={microsoftPartnerLogo}
+              alt="Microsoft Solutions Partner"
+            />
           </div>
+          <button
+            className="sidebar-toggle"
+            onClick={() => setIsSidebarCollapsed((collapsed) => !collapsed)}
+            type="button"
+            aria-label={isSidebarCollapsed ? "Expand agent list" : "Collapse agent list"}
+            title={isSidebarCollapsed ? "Expand agent list" : "Collapse agent list"}
+          >
+            {isSidebarCollapsed ? ">" : "<"}
+          </button>
         </div>
 
         <div className="sidebar-label">
@@ -696,6 +884,14 @@ function App() {
       <main className="chat-container">
         <header className="chat-header">
           <div className="header-agent">
+            <button
+              className="back-to-catalog"
+              onClick={() => setCurrentView("catalog")}
+              type="button"
+              aria-label="Back to agent catalog"
+            >
+              &#8592;
+            </button>
             <div className="header-agent-icon">
               {selectedAgent.shortName.charAt(
                 0
