@@ -7,6 +7,17 @@ import "./App.css";
 
 const API_URL = "http://127.0.0.1:8000";
 
+const serviceOptions = [
+  { key: "foundry", label: "Azure AI Foundry", type: "Technology" },
+  { key: "fabric", label: "Microsoft Fabric", type: "Technology" },
+  { key: "microsoft-365", label: "Microsoft 365", type: "Technology" },
+  { key: "azure-ai-search", label: "Azure AI Search", type: "Tool" },
+  { key: "azure-openai", label: "Azure OpenAI", type: "Tool" },
+  { key: "microsoft-graph", label: "Microsoft Graph", type: "Tool" },
+  { key: "teams", label: "Microsoft Teams", type: "Tool" },
+  { key: "web-research", label: "Web research", type: "Tool" },
+];
+
 const agents = [
   {
     id: "retailinfo",
@@ -14,6 +25,7 @@ const agents = [
     shortName: "Retail",
     technology: "Microsoft Fabric",
     technologyKey: "fabric",
+    services: ["fabric", "azure-ai-search"],
     createdAt: 4,
     description: "Get information about retail products and data.",
     suggestions: [
@@ -28,6 +40,7 @@ const agents = [
     shortName: "Compare",
     technology: "Azure AI Foundry",
     technologyKey: "foundry",
+    services: ["foundry", "azure-openai", "azure-ai-search"],
     createdAt: 3,
     description: "Compare products and provide useful insights.",
     suggestions: [
@@ -42,6 +55,7 @@ const agents = [
     shortName: "Workspace",
     technology: "Microsoft 365",
     technologyKey: "microsoft-365",
+    services: ["microsoft-365", "microsoft-graph", "teams"],
     createdAt: 2,
     description: "Extract and analyze information from emails and Teams.",
     suggestions: [
@@ -56,6 +70,7 @@ const agents = [
     shortName: "Tenders",
     technology: "Azure AI Foundry",
     technologyKey: "foundry",
+    services: ["foundry", "azure-ai-search", "web-research"],
     createdAt: 1,
     description: "Ask questions about tenders and documents.",
     suggestions: [
@@ -88,7 +103,7 @@ function App() {
   const [input, setInput] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [catalogSearch, setCatalogSearch] = useState("");
-  const [catalogTechnologies, setCatalogTechnologies] = useState([]);
+  const [catalogServices, setCatalogServices] = useState([]);
   const [catalogSort, setCatalogSort] = useState("newest");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
@@ -96,25 +111,32 @@ function App() {
 
   const currentState = agentStates[selectedAgent.id];
 
-  const filteredAgents = agents
-    .filter((agent) => {
-      const search = catalogSearch.trim().toLowerCase();
-      const matchesTechnology =
-        catalogTechnologies.length === 0 ||
-        catalogTechnologies.includes(agent.technologyKey);
+  const searchMatches = agents.filter((agent) => {
+    const search = catalogSearch.trim().toLowerCase();
 
-      if (!search) {
-        return matchesTechnology;
-      }
+    if (!search) {
+      return true;
+    }
 
-      return (
-        matchesTechnology &&
-        [agent.name, agent.description, agent.technology]
-          .join(" ")
-          .toLowerCase()
-          .includes(search)
-      );
-    })
+    return [
+      agent.name,
+      agent.description,
+      agent.technology,
+      ...agent.services.map(
+        (serviceKey) =>
+          serviceOptions.find((service) => service.key === serviceKey)?.label || ""
+      ),
+    ]
+      .join(" ")
+      .toLowerCase()
+      .includes(search);
+  });
+
+  const filteredAgents = searchMatches
+    .filter((agent) =>
+      catalogServices.length === 0 ||
+      agent.services.some((serviceKey) => catalogServices.includes(serviceKey))
+    )
     .sort((firstAgent, secondAgent) =>
       catalogSort === "alphabetical"
         ? firstAgent.name.localeCompare(secondAgent.name)
@@ -623,11 +645,11 @@ function App() {
     setCurrentView("chat");
   };
 
-  const toggleCatalogTechnology = (technologyKey) => {
-    setCatalogTechnologies((currentTechnologies) =>
-      currentTechnologies.includes(technologyKey)
-        ? currentTechnologies.filter((key) => key !== technologyKey)
-        : [...currentTechnologies, technologyKey]
+  const toggleCatalogService = (serviceKey) => {
+    setCatalogServices((currentServices) =>
+      currentServices.includes(serviceKey)
+        ? currentServices.filter((key) => key !== serviceKey)
+        : [...currentServices, serviceKey]
     );
   };
 
@@ -701,24 +723,27 @@ function App() {
             <div className="catalog-filters-heading">
               <strong>Services</strong>
             </div>
-            {[
-              { key: "foundry", label: "Azure AI Foundry" },
-              { key: "fabric", label: "Microsoft Fabric" },
-              { key: "microsoft-365", label: "Microsoft 365" },
-            ].map((technology) => {
-              const count = agents.filter(
-                (agent) => agent.technologyKey === technology.key
+            {serviceOptions
+              .filter((service) =>
+                searchMatches.some((agent) => agent.services.includes(service.key))
+              )
+              .map((service) => {
+              const count = searchMatches.filter((agent) =>
+                agent.services.includes(service.key)
               ).length;
-              const isChecked = catalogTechnologies.includes(technology.key);
+              const isChecked = catalogServices.includes(service.key);
 
               return (
-                <label className="catalog-filter-option" key={technology.key}>
+                <label className="catalog-filter-option" key={service.key}>
                   <input
                     type="checkbox"
                     checked={isChecked}
-                    onChange={() => toggleCatalogTechnology(technology.key)}
+                    onChange={() => toggleCatalogService(service.key)}
                   />
-                  <span>{technology.label}</span>
+                  <span>
+                    {service.label}
+                    <small className="catalog-filter-type">{service.type}</small>
+                  </span>
                   <small>{count}</small>
                 </label>
               );

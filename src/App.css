@@ -1895,6 +1895,16 @@ button {
   text-align: center;
 }
 
+.catalog-filter-type {
+  display: block;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  color: #9aaebb;
+  font-size: 9px;
+  text-align: left;
+}
+
 .catalog-results {
   min-width: 0;
 }
