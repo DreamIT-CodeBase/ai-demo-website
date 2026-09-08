@@ -21,6 +21,10 @@ textarea {
   font-family: inherit;
 }
 
+button {
+  border: none;
+}
+
 /* =========================
    APP
    ========================= */
@@ -30,10 +34,19 @@ textarea {
   width: 100%;
   height: 100vh;
   overflow: hidden;
+
   background:
-    linear-gradient(rgba(35, 157, 214, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(35, 157, 214, 0.045) 1px, transparent 1px),
+    linear-gradient(
+      rgba(35, 157, 214, 0.045) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(35, 157, 214, 0.045) 1px,
+      transparent 1px
+    ),
     #f4f8fc;
+
   background-size: 34px 34px;
 }
 
@@ -50,17 +63,14 @@ textarea {
   flex-direction: column;
 
   background: rgba(255, 255, 255, 0.94);
+
   border-right: 1px solid #dce7f0;
+
   box-shadow: 8px 0 28px rgba(20, 55, 90, 0.04);
 }
 
-/* =========================
-   BRAND
-   ========================= */
-
 .brand {
   display: flex;
-  align-items: center;
   flex-direction: column;
   align-items: flex-start;
   gap: 14px;
@@ -79,9 +89,12 @@ textarea {
   justify-content: center;
 
   border-radius: 9px;
+
   background: #092943;
   border: 1px solid #1a4866;
+
   box-shadow: 0 8px 18px rgba(20, 55, 90, 0.12);
+
   overflow: hidden;
 }
 
@@ -90,6 +103,13 @@ textarea {
   max-width: 90%;
   height: auto;
   object-fit: contain;
+}
+
+.brand-mark-text {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 1px;
 }
 
 .brand-title {
@@ -108,10 +128,6 @@ textarea {
   letter-spacing: 0.2px;
 }
 
-/* =========================
-   SIDEBAR LABEL
-   ========================= */
-
 .sidebar-label {
   padding: 22px 20px 10px;
 
@@ -122,10 +138,6 @@ textarea {
 
   letter-spacing: 1px;
 }
-
-/* =========================
-   AGENTS
-   ========================= */
 
 .agents-list {
   padding: 4px 12px;
@@ -141,7 +153,6 @@ textarea {
   gap: 11px;
 
   padding: 13px 10px;
-
   margin-bottom: 5px;
 
   border: 1px solid transparent;
@@ -164,18 +175,16 @@ textarea {
 
 .agent-item.active {
   background: #e8f6fb;
+
   border-color: #b9e5f0;
+
   box-shadow: inset 3px 0 0 #16a8c4;
 }
 
-/* =========================
-   AGENT ICON
-   ========================= */
-
 .agent-icon {
   width: 35px;
-  height: 35px;
   min-width: 35px;
+  height: 35px;
 
   display: flex;
   align-items: center;
@@ -195,10 +204,6 @@ textarea {
   color: #ffffff;
 }
 
-/* =========================
-   AGENT INFO
-   ========================= */
-
 .agent-info {
   min-width: 0;
   padding-top: 1px;
@@ -207,6 +212,7 @@ textarea {
 .agent-name {
   font-size: 13px;
   font-weight: 650;
+
   color: #18314f;
 
   white-space: nowrap;
@@ -226,12 +232,14 @@ textarea {
 .working-status {
   display: flex;
   align-items: center;
+
   gap: 5px;
 
   margin-top: 6px;
 
   font-size: 10px;
   color: #078aa9;
+
   font-weight: 600;
 }
 
@@ -246,29 +254,12 @@ textarea {
   animation: pulse 1.2s infinite;
 }
 
-@keyframes pulse {
-  0% {
-    opacity: 0.35;
-  }
-
-  50% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0.35;
-  }
-}
-
-/* =========================
-   SIDEBAR FOOTER
-   ========================= */
-
 .sidebar-footer {
   margin-top: auto;
 
   display: flex;
   align-items: center;
+
   gap: 8px;
 
   padding: 16px 20px;
@@ -280,8 +271,8 @@ textarea {
 }
 
 .connection-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
 
   border-radius: 50%;
 
@@ -289,12 +280,11 @@ textarea {
 }
 
 /* =========================
-   MAIN CHAT
+   CHAT CONTAINER
    ========================= */
 
 .chat-container {
   flex: 1;
-
   min-width: 0;
   height: 100vh;
 
@@ -305,7 +295,7 @@ textarea {
 }
 
 /* =========================
-   HEADER
+   CHAT HEADER
    ========================= */
 
 .chat-header {
@@ -319,12 +309,14 @@ textarea {
   padding: 0 30px;
 
   background: rgba(255, 255, 255, 0.94);
+
   border-bottom: 1px solid #dce7f0;
 }
 
 .header-agent {
   display: flex;
   align-items: center;
+
   gap: 12px;
 }
 
@@ -339,13 +331,13 @@ textarea {
   border-radius: 9px;
 
   background: #12345a;
-  color: white;
+  color: #ffffff;
 
   font-size: 13px;
   font-weight: 700;
 }
 
-.chat-header h2 {
+.header-agent h2 {
   margin: 0;
 
   font-size: 17px;
@@ -354,16 +346,18 @@ textarea {
   color: #102743;
 }
 
-.chat-header p {
+.header-agent p {
   margin: 3px 0 0;
 
   font-size: 11px;
+
   color: #66849c;
 }
 
 .header-status {
   display: flex;
   align-items: center;
+
   gap: 6px;
 
   padding: 6px 10px;
@@ -372,6 +366,7 @@ textarea {
   border-radius: 20px;
 
   font-size: 10px;
+
   color: #52728b;
 }
 
@@ -385,7 +380,7 @@ textarea {
 }
 
 /* =========================
-   MESSAGE AREA
+   MESSAGES
    ========================= */
 
 .messages-container {
@@ -396,6 +391,247 @@ textarea {
   padding: 30px 40px;
 
   scroll-behavior: smooth;
+}
+
+.message-row {
+  display: flex;
+
+  width: 100%;
+
+  margin-bottom: 20px;
+}
+
+.user-row {
+  justify-content: flex-end;
+}
+
+.assistant-row {
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.message-avatar {
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-right: 10px;
+
+  border-radius: 9px;
+
+  background: #e5f6fb;
+  color: #078aa9;
+
+  font-size: 13px;
+}
+
+.message-bubble {
+  max-width: min(780px, 78%);
+
+  border-radius: 11px;
+
+  font-size: 13px;
+  line-height: 1.6;
+
+  overflow-wrap: break-word;
+
+  text-align: left;
+}
+
+.user-bubble {
+  padding: 11px 14px;
+
+  background: #12345a;
+  color: #ffffff;
+
+  border-bottom-right-radius: 3px;
+}
+
+.assistant-bubble {
+  padding: 12px 15px;
+
+  background: #ffffff;
+
+  color: #292d37;
+
+  text-align: left;
+
+  border: 1px solid #d7e6ef;
+
+  border-bottom-left-radius: 3px;
+
+  box-shadow: 0 1px 2px rgba(20, 25, 35, 0.02);
+}
+
+/* =========================
+   MARKDOWN
+   ========================= */
+
+.markdown-content {
+  width: 100%;
+
+  color: #363b47;
+
+  text-align: left;
+}
+
+.markdown-content p {
+  margin: 0 0 10px;
+
+  color: #363b47;
+}
+
+.markdown-content p:last-child {
+  margin-bottom: 0;
+}
+
+.markdown-content strong {
+  font-weight: 700;
+  color: #252934;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4 {
+  margin-top: 18px;
+  margin-bottom: 8px;
+
+  color: #171a22;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  margin: 8px 0 12px;
+
+  padding-left: 22px;
+}
+
+.markdown-content li {
+  margin-bottom: 4px;
+
+  color: #363b47;
+}
+
+.markdown-content code {
+  padding: 2px 4px;
+
+  border-radius: 4px;
+
+  background: #f1f2f4;
+
+  font-size: 11px;
+
+  color: #30343d;
+}
+
+.markdown-content pre {
+  overflow-x: auto;
+
+  padding: 12px;
+  margin: 10px 0;
+
+  border-radius: 8px;
+
+  background: #f3f4f6;
+}
+
+.markdown-content pre code {
+  padding: 0;
+
+  background: transparent;
+}
+
+.markdown-content table {
+  width: 100%;
+
+  border-collapse: collapse;
+
+  margin: 13px 0;
+
+  font-size: 12px;
+}
+
+.markdown-content th,
+.markdown-content td {
+  padding: 8px 10px;
+
+  border: 1px solid #e0e3e8;
+
+  text-align: left;
+
+  color: #363b47;
+}
+
+.markdown-content th {
+  background: #f4f5f7;
+
+  font-weight: 650;
+
+  color: #252934;
+}
+
+.markdown-content blockquote {
+  margin: 10px 0;
+
+  padding: 8px 12px;
+
+  border-left: 3px solid #cdd1d8;
+
+  background: #f8f9fa;
+
+  color: #747a86;
+}
+
+.markdown-content a {
+  color: #078aa9;
+
+  text-decoration: none;
+}
+
+.markdown-content a:hover {
+  text-decoration: underline;
+}
+
+/* =========================
+   REASONING
+   ========================= */
+
+.reasoning-box {
+  margin-bottom: 12px;
+
+  padding: 10px 11px;
+
+  border-radius: 8px;
+
+  background: #f1f8fb;
+
+  border: 1px solid #d7e8ef;
+}
+
+.reasoning-title {
+  margin-bottom: 5px;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  color: #52728b;
+}
+
+.reasoning-content {
+  font-size: 10px;
+
+  line-height: 1.5;
+
+  color: #70899d;
+}
+
+.reasoning-content p {
+  margin: 0 0 5px;
 }
 
 /* =========================
@@ -429,7 +665,6 @@ textarea {
   border-radius: 15px;
 
   background: #e5f6fb;
-
   color: #078aa9;
 
   font-size: 25px;
@@ -439,6 +674,7 @@ textarea {
   margin: 0;
 
   font-size: 26px;
+
   font-weight: 700;
 
   letter-spacing: -0.6px;
@@ -458,14 +694,11 @@ textarea {
   color: #315c79;
 }
 
-/* =========================
-   SUGGESTIONS
-   ========================= */
-
 .suggestions {
   width: min(850px, 100%);
 
   display: grid;
+
   grid-template-columns: repeat(3, 1fr);
 
   gap: 12px;
@@ -480,12 +713,12 @@ textarea {
 
   display: flex;
   flex-direction: column;
-
   align-items: flex-start;
 
   padding: 16px;
 
   border: 1px solid #d7e6ef;
+
   border-radius: 12px;
 
   background: rgba(255, 255, 255, 0.92);
@@ -503,14 +736,14 @@ textarea {
 .suggestion-card:hover {
   border-color: #8ed3e2;
 
-  box-shadow:
-    0 5px 18px rgba(30, 35, 50, 0.07);
+  box-shadow: 0 5px 18px rgba(30, 35, 50, 0.07);
 
   transform: translateY(-2px);
 }
 
 .suggestion-number {
   font-size: 10px;
+
   font-weight: 700;
 
   color: #9da2ad;
@@ -524,6 +757,7 @@ textarea {
   padding-right: 18px;
 
   font-size: 12px;
+
   line-height: 1.45;
 
   color: #3d424d;
@@ -546,202 +780,97 @@ textarea {
 
 .suggestion-card:hover .suggestion-arrow {
   color: #078aa9;
+
   transform: translateX(3px);
 }
 
 /* =========================
-   MESSAGES
+   AGENT ACTIVITY
    ========================= */
 
-.message-row {
-  display: flex;
-
+.agent-activity {
   width: 100%;
 
-  margin-bottom: 22px;
+  margin-bottom: 10px;
+
+  text-align: left;
 }
 
-.user-row {
-  justify-content: flex-end;
-}
-
-.assistant-row {
-  justify-content: flex-start;
-  align-items: flex-start;
-}
-
-.message-avatar {
-  width: 30px;
-  height: 30px;
-  min-width: 30px;
-
+.activity-header {
   display: flex;
+
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
 
-  margin-right: 10px;
+  gap: 6px;
 
-  border-radius: 8px;
-
-  background: #e5f6fb;
-
-  color: #078aa9;
-
-  font-size: 14px;
-}
-
-.message-bubble {
-  max-width: min(780px, 78%);
-
-  padding: 12px 15px;
-
-  border-radius: 11px;
-
-  font-size: 13px;
-  line-height: 1.6;
-
-  overflow-wrap: break-word;
-  text-align: left;
-}
-
-.user-bubble {
-  background: #12345a;
-
-  color: #ffffff;
-
-  border-bottom-right-radius: 3px;
-}
-
-.assistant-bubble {
-  background: #ffffff;
-
-  color: #292d37;
-
-  border: 1px solid #d7e6ef;
-
-  border-bottom-left-radius: 3px;
-
-  box-shadow: 0 1px 2px rgba(20, 25, 35, 0.02);
-}
-
-/* =========================
-   MARKDOWN
-   ========================= */
-
-.assistant-bubble p {
-  margin: 0 0 10px;
-}
-
-.assistant-bubble p:last-child {
-  margin-bottom: 0;
-}
-
-.assistant-bubble h1,
-.assistant-bubble h2,
-.assistant-bubble h3,
-.assistant-bubble h4 {
-  margin-top: 18px;
-  margin-bottom: 8px;
-
-  color: #171a22;
-}
-
-.assistant-bubble h1:first-child,
-.assistant-bubble h2:first-child,
-.assistant-bubble h3:first-child,
-.assistant-bubble h4:first-child {
-  margin-top: 0;
-}
-
-.assistant-bubble ul,
-.assistant-bubble ol {
-  margin: 8px 0 12px;
-
-  padding-left: 22px;
-}
-
-.assistant-bubble li {
-  margin-bottom: 4px;
-}
-
-.assistant-bubble strong {
-  font-weight: 700;
-}
-
-.assistant-bubble table {
-  width: 100%;
-
-  margin: 13px 0;
-
-  border-collapse: collapse;
-
-  font-size: 12px;
-
-  overflow-x: auto;
-}
-
-.assistant-bubble th,
-.assistant-bubble td {
-  padding: 8px 10px;
-
-  border: 1px solid #e0e3e8;
-
-  text-align: left;
-}
-
-.assistant-bubble th {
-  background: #f4f5f7;
-
-  color: #252934;
-
-  font-weight: 700;
-}
-
-.assistant-bubble code {
-  padding: 2px 5px;
-
-  border-radius: 4px;
-
-  background: #f1f2f4;
-
-  font-family: Consolas, monospace;
+  margin-bottom: 7px;
 
   font-size: 11px;
+
+  font-weight: 650;
+
+  color: #52728b;
+
+  text-align: left;
 }
 
-.assistant-bubble pre {
-  margin: 12px 0;
+.activity-icon {
+  font-size: 11px;
 
-  padding: 13px;
-
-  overflow-x: auto;
-
-  border-radius: 8px;
-
-  background: #f3f4f6;
-}
-
-.assistant-bubble pre code {
-  padding: 0;
-
-  background: transparent;
-}
-
-.assistant-bubble blockquote {
-  margin: 10px 0;
-
-  padding: 7px 12px;
-
-  border-left: 3px solid #cdd1d8;
-
-  color: #747a86;
-
-  background: #f8f9fa;
-}
-
-.assistant-bubble a {
   color: #078aa9;
-  text-decoration: underline;
+}
+
+.activity-list {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: flex-start;
+
+  gap: 4px;
+
+  text-align: left;
+}
+
+.activity-item {
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: flex-start;
+
+  gap: 6px;
+
+  font-size: 10px;
+
+  line-height: 1.4;
+
+  color: #70899d;
+
+  text-align: left;
+}
+
+.activity-status {
+  width: 10px;
+  min-width: 10px;
+
+  font-size: 9px;
+
+  text-align: center;
+}
+
+.activity-item.active {
+  color: #52728b;
+}
+
+.activity-item.completed {
+  color: #7b92a3;
+}
+
+.activity-item.failed {
+  color: #dc2626;
 }
 
 /* =========================
@@ -749,22 +878,44 @@ textarea {
    ========================= */
 
 .loading-bubble {
+  width: min(780px, 78%);
+
   padding: 11px 14px;
+
+  text-align: left;
 }
 
 .loading-content {
+  width: 100%;
+
   display: flex;
+
   align-items: center;
+  justify-content: space-between;
+
+  gap: 18px;
+
+  text-align: left;
+}
+
+.loading-indicator {
+  display: flex;
+
+  align-items: center;
+  justify-content: flex-start;
+
   gap: 5px;
+
+  min-width: 0;
 }
 
 .loading-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 
   border-radius: 50%;
 
-  background: #8e94a0;
+  background: #6f8b9e;
 
   animation: loading 1.2s infinite ease-in-out;
 }
@@ -778,25 +929,74 @@ textarea {
 }
 
 .loading-text {
-  margin-left: 5px;
+  margin-left: 4px;
+
+  font-size: 10px;
+
+  color: #70899d;
+}
+
+/* =========================
+   STOP BUTTON
+   ========================= */
+
+.stop-button {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 3px;
+
+  padding: 3px 6px;
+
+  border: 1px solid #cfe0ea;
+
+  border-radius: 5px;
+
+  background: #ffffff;
+
+  color: #52728b;
+
+  font-size: 8px;
+
+  font-weight: 600;
+
+  line-height: 1;
+
+  cursor: pointer;
+
+  flex-shrink: 0;
+}
+
+.stop-button:hover {
+  background: #f1f8fc;
+
+  border-color: #9fcfdd;
+
+  color: #315c79;
+}
+
+.stop-button:active {
+  background: #e8f6fb;
+}
+
+.stop-icon {
+  font-size: 6px;
+
+  line-height: 1;
+}
+
+/* =========================
+   STOPPED MESSAGE
+   ========================= */
+
+.stopped-message {
+  margin-top: 6px;
 
   font-size: 11px;
 
-  color: #8a909c;
-}
-
-@keyframes loading {
-  0%,
-  60%,
-  100% {
-    opacity: 0.35;
-    transform: translateY(0);
-  }
-
-  30% {
-    opacity: 1;
-    transform: translateY(-2px);
-  }
+  color: #8aa0af;
 }
 
 /* =========================
@@ -811,68 +1011,13 @@ textarea {
   border-top: 1px solid #dce7f0;
 }
 
-/* =========================
-   FILE
-   ========================= */
-
-.selected-file {
-  max-width: 1000px;
-
-  display: flex;
-  align-items: center;
-
-  gap: 7px;
-
-  margin: 0 auto 8px;
-
-  padding: 7px 10px;
-
-  border: 1px solid #e3e5ea;
-  border-radius: 7px;
-
-  background: #f8f9fb;
-
-  font-size: 11px;
-
-  color: #5f6571;
-}
-
-.file-icon {
-  font-size: 12px;
-}
-
-.file-name {
-  flex: 1;
-
-  overflow: hidden;
-
-  text-overflow: ellipsis;
-
-  white-space: nowrap;
-}
-
-.selected-file button {
-  border: none;
-
-  background: transparent;
-
-  color: #7c828d;
-
-  font-size: 17px;
-
-  cursor: pointer;
-}
-
-/* =========================
-   INPUT BOX
-   ========================= */
-
 .input-box {
   max-width: 1000px;
 
   min-height: 48px;
 
   display: flex;
+
   align-items: flex-end;
 
   gap: 8px;
@@ -887,16 +1032,26 @@ textarea {
 
   background: #ffffff;
 
+  box-shadow: 0 2px 8px rgba(25, 30, 45, 0.04);
+
+  transition: border-color 0.18s ease;
+}
+
+.input-box:focus-within {
+  border-color: #8ed3e2;
+
   box-shadow:
-    0 2px 8px rgba(25, 30, 45, 0.04);
+    0 2px 8px rgba(25, 30, 45, 0.04),
+    0 0 0 2px rgba(8, 166, 194, 0.08);
 }
 
 .attach-button {
   width: 38px;
-  height: 38px;
   min-width: 38px;
+  height: 38px;
 
   display: flex;
+
   align-items: center;
   justify-content: center;
 
@@ -911,10 +1066,14 @@ textarea {
   font-size: 21px;
 
   cursor: pointer;
+
+  transition: background 0.15s ease;
 }
 
 .attach-button:hover {
-  background: #eceef2;
+  background: #edf6f9;
+
+  color: #52728b;
 }
 
 .input-box textarea {
@@ -928,7 +1087,6 @@ textarea {
   padding: 9px 7px;
 
   border: none;
-
   outline: none;
 
   background: transparent;
@@ -938,41 +1096,48 @@ textarea {
   font-size: 13px;
 
   line-height: 20px;
+
+  text-align: left;
 }
 
 .input-box textarea::placeholder {
   color: #a0a5af;
 }
 
-/* =========================
-   SEND BUTTON
-   ========================= */
+.input-box textarea:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.7;
+}
 
 .send-button {
   height: 38px;
 
   display: flex;
+
   align-items: center;
+  justify-content: center;
+
   gap: 6px;
 
   padding: 0 13px;
-
-  border: none;
 
   border-radius: 8px;
 
   background: #08a6c2;
 
-  color: white;
+  color: #ffffff;
 
   font-size: 12px;
+
   font-weight: 650;
 
   cursor: pointer;
 
   transition:
     background 0.2s ease,
-    transform 0.15s ease;
+    transform 0.15s ease,
+    opacity 0.15s ease;
 }
 
 .send-button:hover:not(:disabled) {
@@ -984,13 +1149,79 @@ textarea {
 }
 
 .send-button:disabled {
-  background: #c9cbd8;
+  background: #c9d5db;
+
+  opacity: 0.7;
 
   cursor: not-allowed;
 }
 
 .send-arrow {
+  font-size: 13px;
+
+  line-height: 1;
+}
+
+/* =========================
+   SELECTED FILE
+   ========================= */
+
+.selected-file {
+  max-width: 1000px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  margin: 0 auto 8px;
+
+  padding: 7px 10px;
+
+  border: 1px solid #d7e6ef;
+
+  border-radius: 7px;
+
+  background: #f8f9fb;
+
+  color: #5f6571;
+
+  font-size: 11px;
+}
+
+.file-icon {
+  font-size: 11px;
+
+  color: #078aa9;
+}
+
+.file-name {
+  max-width: 300px;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+.selected-file button {
+  padding: 0 2px;
+
+  background: transparent;
+
+  color: #969ba6;
+
   font-size: 15px;
+
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+.selected-file button:hover {
+  color: #52728b;
 }
 
 /* =========================
@@ -1001,6 +1232,7 @@ textarea {
   max-width: 1000px;
 
   display: flex;
+
   align-items: center;
 
   gap: 7px;
@@ -1019,7 +1251,7 @@ textarea {
 }
 
 /* =========================
-   SCROLLBAR
+   SCROLLBARS
    ========================= */
 
 .messages-container::-webkit-scrollbar,
@@ -1034,9 +1266,43 @@ textarea {
 
 .messages-container::-webkit-scrollbar-thumb,
 .agents-list::-webkit-scrollbar-thumb {
-  background: #d9dce2;
-
   border-radius: 10px;
+
+  background: #d5e2e9;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover,
+.agents-list::-webkit-scrollbar-thumb:hover {
+  background: #bfd2dc;
+}
+
+/* =========================
+   ANIMATIONS
+   ========================= */
+
+@keyframes loading {
+  0%,
+  80%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+
+  40% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 /* =========================
@@ -1049,14 +1315,6 @@ textarea {
     min-width: 240px;
   }
 
-  .suggestions {
-    grid-template-columns: 1fr;
-  }
-
-  .suggestion-card {
-    min-height: auto;
-  }
-
   .messages-container {
     padding: 25px;
   }
@@ -1064,6 +1322,10 @@ textarea {
   .input-section {
     padding-left: 25px;
     padding-right: 25px;
+  }
+
+  .suggestions {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1077,8 +1339,12 @@ textarea {
     padding: 18px 14px;
   }
 
-  .brand-title {
-    font-size: 13px;
+  .brand-mark {
+    height: 54px;
+  }
+
+  .brand-mark img {
+    width: 150px;
   }
 
   .agent-description {
@@ -1089,6 +1355,10 @@ textarea {
     padding: 0 18px;
   }
 
+  .chat-header h2 {
+    font-size: 16px;
+  }
+
   .header-status {
     display: none;
   }
@@ -1097,15 +1367,27 @@ textarea {
     padding: 20px 15px;
   }
 
-  .input-section {
-    padding: 10px 15px 13px;
-  }
-
   .message-bubble {
     max-width: 88%;
   }
 
-  .input-footer {
+  .loading-bubble {
+    width: 88%;
+  }
+
+  .input-section {
+    padding: 10px 15px 13px;
+  }
+
+  .input-box {
+    min-height: 46px;
+  }
+
+  .input-box textarea {
+    font-size: 12px;
+  }
+
+  .powered {
     display: none;
   }
 }
