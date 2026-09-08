@@ -107,6 +107,10 @@ function App() {
   const [catalogSort, setCatalogSort] = useState("newest");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [agentSearch, setAgentSearch] = useState("");
+  const [expandedServiceGroups, setExpandedServiceGroups] = useState({
+    Technology: true,
+    Tool: true,
+  });
 
   const abortControllers = useRef({});
 
@@ -743,6 +747,13 @@ function App() {
     );
   };
 
+  const toggleServiceGroup = (groupName) => {
+    setExpandedServiceGroups((groups) => ({
+      ...groups,
+      [groupName]: !groups[groupName],
+    }));
+  };
+
   const handleSuggestionClick = (
     suggestion
   ) => {
@@ -813,29 +824,57 @@ function App() {
             <div className="catalog-filters-heading">
               <strong>Services</strong>
             </div>
-            {serviceOptions
-              .filter((service) =>
-                searchMatches.some((agent) => agent.services.includes(service.key))
-              )
-              .map((service) => {
-              const count = searchMatches.filter((agent) =>
-                agent.services.includes(service.key)
-              ).length;
-              const isChecked = catalogServices.includes(service.key);
+            {["Technology", "Tool"].map((groupName) => {
+              const groupServices = serviceOptions.filter(
+                (service) =>
+                  service.type === groupName &&
+                  searchMatches.some((agent) => agent.services.includes(service.key))
+              );
+
+              if (groupServices.length === 0) {
+                return null;
+              }
+
+              const isExpanded = expandedServiceGroups[groupName];
 
               return (
-                <label className="catalog-filter-option" key={service.key}>
-                  <input
-                    type="checkbox"
-                    checked={isChecked}
-                    onChange={() => toggleCatalogService(service.key)}
-                  />
-                  <span>
-                    {service.label}
-                    <small className="catalog-filter-type">{service.type}</small>
-                  </span>
-                  <small>{count}</small>
-                </label>
+                <section className="catalog-filter-group" key={groupName}>
+                  <button
+                    className="catalog-filter-group-heading"
+                    onClick={() => toggleServiceGroup(groupName)}
+                    type="button"
+                    aria-expanded={isExpanded}
+                  >
+                    <span className="catalog-group-chevron" aria-hidden="true">
+                      {isExpanded ? "⌄" : "›"}
+                    </span>
+                    <strong>{groupName}</strong>
+                    <span className="catalog-group-count">{groupServices.length}</span>
+                  </button>
+
+                  {isExpanded && (
+                    <div className="catalog-filter-options">
+                      {groupServices.map((service) => {
+                        const count = searchMatches.filter((agent) =>
+                          agent.services.includes(service.key)
+                        ).length;
+                        const isChecked = catalogServices.includes(service.key);
+
+                        return (
+                          <label className="catalog-filter-option" key={service.key}>
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => toggleCatalogService(service.key)}
+                            />
+                            <span>{service.label}</span>
+                            <small>{count}</small>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
               );
             })}
           </aside>
@@ -915,13 +954,13 @@ function App() {
             />
           </div>
           <button
-            className="sidebar-toggle"
+            className={`sidebar-toggle ${isSidebarCollapsed ? "expand" : "collapse"}`}
             onClick={() => setIsSidebarCollapsed((collapsed) => !collapsed)}
             type="button"
             aria-label={isSidebarCollapsed ? "Expand agent list" : "Collapse agent list"}
             title={isSidebarCollapsed ? "Expand agent list" : "Collapse agent list"}
           >
-            {isSidebarCollapsed ? ">" : "<"}
+            <span className="sidebar-toggle-icon" aria-hidden="true"></span>
           </button>
         </div>
 
