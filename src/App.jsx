@@ -106,10 +106,24 @@ function App() {
   const [catalogServices, setCatalogServices] = useState([]);
   const [catalogSort, setCatalogSort] = useState("newest");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [agentSearch, setAgentSearch] = useState("");
 
   const abortControllers = useRef({});
 
   const currentState = agentStates[selectedAgent.id];
+
+  const visibleAgents = agents.filter((agent) => {
+    const search = agentSearch.trim().toLowerCase();
+
+    if (!search) {
+      return true;
+    }
+
+    return [agent.name, agent.description, agent.technology]
+      .join(" ")
+      .toLowerCase()
+      .includes(search);
+  });
 
   const searchMatches = agents.filter((agent) => {
     const search = catalogSearch.trim().toLowerCase();
@@ -226,6 +240,66 @@ function App() {
         throw new Error(
           `Backend returned ${response.status}`
         );
+      }
+
+      const contentType =
+        response.headers.get("content-type") || "";
+
+      if (
+        contentType.includes("application/json") &&
+        !contentType.includes("ndjson")
+      ) {
+        const data = await response.json();
+
+        if (data.error) {
+          throw new Error(
+            data.details || data.error
+          );
+        }
+
+        finalResponse =
+          data.response ||
+          data.reply ||
+          "No response received from the agent.";
+
+        activities = activities.map(
+          (activity) => ({
+            ...activity,
+            status:
+              activity.status === "active"
+                ? "completed"
+                : activity.status,
+          })
+        );
+
+        activities.push({
+          id: "response-completed",
+          label: "Response completed",
+          status: "completed",
+        });
+
+        setAgentStates((prev) => ({
+          ...prev,
+          [agentId]: {
+            ...prev[agentId],
+            conversationId:
+              data.conversation_id ||
+              newConversationId,
+            loading: false,
+            reasoning: "",
+            activities,
+            messages: [
+              ...prev[agentId].messages,
+              {
+                role: "assistant",
+                content: finalResponse,
+                activities,
+              },
+            ],
+          },
+        }));
+
+        return;
       }
 
       const reader = response.body.getReader();
@@ -645,6 +719,22 @@ function App() {
     setCurrentView("chat");
   };
 
+  const startNewChat = () => {
+    if (currentState.loading) {
+      stopResponse(selectedAgent.id);
+    }
+
+    updateAgentState(selectedAgent.id, {
+      conversationId: null,
+      messages: [],
+      loading: false,
+      reasoning: "",
+      activities: [],
+    });
+    setInput("");
+    setSelectedFile(null);
+  };
+
   const toggleCatalogService = (serviceKey) => {
     setCatalogServices((currentServices) =>
       currentServices.includes(serviceKey)
@@ -839,8 +929,21 @@ function App() {
           AGENTS
         </div>
 
+        {!isSidebarCollapsed && (
+          <label className="agent-search">
+            <span aria-hidden="true">⌕</span>
+            <input
+              type="search"
+              value={agentSearch}
+              onChange={(event) => setAgentSearch(event.target.value)}
+              placeholder="Search agents"
+              aria-label="Search agents"
+            />
+          </label>
+        )}
+
         <div className="agents-list">
-          {agents.map((agent) => {
+          {visibleAgents.map((agent) => {
             const state =
               agentStates[agent.id];
 
@@ -885,16 +988,18 @@ function App() {
                     }
                   </div>
 
-                  {state.loading && (
-                    <div className="working-status">
-                      <span className="status-dot"></span>
-                      Working...
-                    </div>
-                  )}
+                  <div className={`agent-status ${state.loading ? "working" : "ready"}`}>
+                    <span className="status-dot"></span>
+                    {state.loading ? "Working" : "Ready"}
+                  </div>
                 </div>
               </button>
             );
           })}
+
+          {visibleAgents.length === 0 && (
+            <div className="agent-search-empty">No agents found</div>
+          )}
         </div>
 
         <div className="sidebar-footer">
@@ -936,9 +1041,20 @@ function App() {
             </div>
           </div>
 
-          <div className="header-status">
-            <span></span>
-            Ready
+          <div className="header-actions">
+            <button
+              className="new-chat-button"
+              onClick={startNewChat}
+              type="button"
+            >
+              <span aria-hidden="true">+</span>
+              New chat
+            </button>
+
+            <div className={`header-status ${currentState.loading ? "working" : ""}`}>
+              <span></span>
+              {currentState.loading ? "Working" : "Ready"}
+            </div>
           </div>
         </header>
 
