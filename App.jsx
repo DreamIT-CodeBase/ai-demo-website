@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -107,12 +106,26 @@ const createAgentState = () => ({
   messages: [],
   loading: false,
   reasoning: "",
-  activities: [],
+  currentEvent: null,
+  eventHistory: [],
+  summary: null,
 });
 
+const normalizeSummary = (value) => {
+  if (!value) return null;
+  if (Array.isArray(value)) {
+    const items = value.filter(
+      (item) => item !== null && item !== undefined && String(item).trim()
+    );
+    return items.length ? items : null;
+  }
+  if (typeof value === "string" && value.trim()) return value.trim();
+  return null;
+};
+
 const getToolName = (tool) =>
-  tool?.name ||
   tool?.server_label ||
+  tool?.name ||
   tool?.function?.name ||
   tool?.type ||
   "Connected tool";
@@ -123,10 +136,7 @@ const getToolType = (tool) =>
 const getToolIcon = (tool) => {
   const value = `${getToolName(tool)} ${getToolType(tool)} ${tool?.server_url || ""}`.toLowerCase();
 
-  if (
-    getToolType(tool) === "mcp" &&
-    value.includes("/knowledgebases/")
-  ) {
+  if (getToolType(tool) === "mcp" && value.includes("/knowledgebases/")) {
     return iconUrls.knowledge;
   }
 
@@ -142,13 +152,18 @@ const getToolIcon = (tool) => {
   return iconUrls.ai;
 };
 
-const getToolDescription = (tool) => {
+const getToolDescription = (tool, agent) => {
   const value = `${getToolName(tool)} ${getToolType(tool)} ${tool?.server_url || ""}`.toLowerCase();
+  const configuredDescription = tool?.description || tool?.function?.description || tool?.openapi?.description;
 
-  if (
-    getToolType(tool) === "mcp" &&
-    value.includes("/knowledgebases/")
-  ) {
+  if (configuredDescription) {
+    return {
+      description: configuredDescription,
+      why: `Configured on the ${agent.name} agent as part of its available tools.`,
+    };
+  }
+
+  if (getToolType(tool) === "mcp" && value.includes("/knowledgebases/")) {
     return {
       description: "Azure AI Search knowledge base connected to the agent for grounded information retrieval.",
       why: "Used when the agent needs information from the connected knowledge source.",
@@ -191,9 +206,7 @@ const getToolDescription = (tool) => {
   );
 
   return {
-    description:
-      match?.description ||
-      `Provides the ${name} capability to the agent.`,
+    description: match?.description || `Provides the ${name} capability to the agent.`,
     why: "Used when the agent determines that this capability is required.",
   };
 };
@@ -212,55 +225,101 @@ const getModelIcon = (model) => {
   return iconUrls.ai;
 };
 
-const getModelDescription = (model) => {
+const getModelDescription = (model, agent, metadata) => {
   if (!model || model === "Model unavailable") {
     return {
-      description: "No model deployment information is currently available for this agent.",
-      why: "The live Foundry configuration did not expose a model value.",
+      description: "The model configuration is not currently exposed by the live agent metadata.",
+      why: `The ${agent.name} configuration did not return a model deployment value.`,
     };
   }
 
+  const purpose = metadata?.description || agent.description;
+
   return {
-    description: "The language model powering this agent. It interprets the user's request and generates the final response.",
-    why: `This agent is currently configured to use ${model}.`,
+    description: purpose
+      ? `Configured as the model for ${agent.name}. The agent is configured to ${purpose.charAt(0).toLowerCase()}${purpose.slice(1)}`
+      : `Configured as the model for ${agent.name}.`,
+    why: `${model} is the model returned by the current Foundry agent definition.`,
   };
 };
 
-const getKnowledgeSourceDescription = (tool) => {
+const getKnowledgeSourceDescription = (tool, agent) => {
   const type = String(tool?.type || "").toLowerCase();
   const serverUrl = String(tool?.server_url || "").toLowerCase();
+  const name = getToolName(tool);
+  const value = `${name} ${type} ${serverUrl}`.toLowerCase();
+  const configuredDescription = tool?.description || tool?.function?.description || tool?.openapi?.description;
 
-  if (type === "mcp" && serverUrl.includes("/knowledgebases/")) {
+  if (configuredDescription) {
     return {
-      description: "Azure AI Search knowledge base connected to the agent for grounded information retrieval.",
-      why: "Used to retrieve grounded information from the connected knowledge base.",
+      description: configuredDescription,
+      why: `Configured on the ${agent.name} agent as a connected knowledge source.`,
     };
   }
 
-  if (type.includes("fabric_iq")) {
-    return {
-      description: "Microsoft Fabric IQ knowledge source connected to the agent.",
-      why: "Used to retrieve information from connected Fabric data.",
-    };
-  }
+  const descriptions = {
+    retailinfo: {
+      fabric: {
+        description: "Provides RetailInfo with access to the connected Microsoft Fabric retail data used for internal product and business questions.",
+        why: "Used when RetailInfo needs information from the internal retail data layer.",
+      },
+      search: {
+        description: "Supports RetailInfo with retrieval of relevant indexed knowledge associated with its retail data context.",
+        why: "Used to retrieve relevant grounded information for retail questions.",
+      },
+    },
+    productcomparison: {
+      search: {
+        description: "Provides Product Comparison with indexed knowledge used to retrieve relevant product information for comparison and matching.",
+        why: "Used to ground comparisons with information from the configured knowledge source.",
+      },
+      external: {
+        description: "Connects Product Comparison to approved external product information so internal and competitor products can be compared.",
+        why: "Used when the comparison requires product details outside the internal retail data.",
+      },
+    },
+    "email-teams-extractor": {
+      microsoft: {
+        description: "Connects Email & Teams Extractor to Microsoft 365 information relevant to the user's mailbox and Teams workspace.",
+        why: "Used to retrieve the emails, messages, and workspace information needed for the user's request.",
+      },
+    },
+    "Tender-agent": {
+      search: {
+        description: "Provides Tender Agent with indexed tender and document knowledge for targeted tender analysis.",
+        why: "Used when the agent needs grounded information from its configured tender knowledge source.",
+      },
+      external: {
+        description: "Provides Tender Agent with access to external tender research sources for finding current tender opportunities.",
+        why: "Used when the request requires current information from external tender sources.",
+      },
+    },
+  };
 
-  if (type.includes("work_iq")) {
-    return {
-      description: "Work IQ knowledge source connected to the agent.",
-      why: "Used to retrieve relevant organizational information.",
-    };
-  }
+  const agentDescriptions = descriptions[agent.id] || {};
+  const isMicrosoft =
+    value.includes("microsoft") ||
+    value.includes("graph") ||
+    value.includes("teams") ||
+    value.includes("outlook");
+  const isFabric = value.includes("fabric");
+  const isSearch =
+    value.includes("search") ||
+    (type.includes("mcp") && serverUrl.includes("/knowledgebases/"));
+  const isExternal =
+    value.includes("openapi") ||
+    value.includes("api") ||
+    value.includes("web") ||
+    value.includes("browser");
 
-  if (type.includes("file_search")) {
-    return {
-      description: "Connected file and knowledge content used to ground responses.",
-      why: "Used when the agent needs information from its connected files.",
-    };
-  }
+  if (isFabric && agentDescriptions.fabric) return agentDescriptions.fabric;
+  if (isMicrosoft && agentDescriptions.microsoft) return agentDescriptions.microsoft;
+  if (isExternal && agentDescriptions.external) return agentDescriptions.external;
+  if (isSearch && agentDescriptions.search) return agentDescriptions.search;
 
   return {
-    description: "Connected knowledge source used to ground agent responses.",
-    why: "Used when the agent needs information from the configured knowledge source.",
+    description: `Configured knowledge source for ${agent.name}: ${name}.`,
+    why: `Used when ${agent.name} needs information from this connected source.`,
   };
 };
 
@@ -284,6 +343,7 @@ function InfoTooltip({ label, description, id, icon }) {
 
       <span className="info-tooltip-trigger" tabIndex="0" aria-describedby={id}>
         <span className="agent-info-item-name">{label}</span>
+
         <span id={id} className="info-tooltip" role="tooltip">
           <strong>{label}</strong>
           <span>{description.description}</span>
@@ -296,7 +356,7 @@ function InfoTooltip({ label, description, id, icon }) {
   );
 }
 
-function App() {
+function AgentApp() {
   const [currentView, setCurrentView] = useState("catalog");
   const [selectedAgent, setSelectedAgent] = useState(agents[0]);
   const [agentStates, setAgentStates] = useState({
@@ -312,6 +372,10 @@ function App() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [catalogSearch, setCatalogSearch] = useState("");
   const [catalogServices, setCatalogServices] = useState([]);
+  const [openServiceGroups, setOpenServiceGroups] = useState({
+    Technology: true,
+    Tool: true,
+  });
   const [catalogSort, setCatalogSort] = useState("newest");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isInfoSidebarCollapsed, setIsInfoSidebarCollapsed] = useState(false);
@@ -319,6 +383,8 @@ function App() {
   const [agentSearch, setAgentSearch] = useState("");
 
   const abortControllers = useRef({});
+  const requestIds = useRef({});
+  const silentAbortRequests = useRef(new Set());
   const resizeRef = useRef(null);
   const currentState = agentStates[selectedAgent.id];
   const liveMetadata = agentMetadata[selectedAgent.id];
@@ -337,9 +403,7 @@ function App() {
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => null);
-          throw new Error(
-            errorData?.detail || `Backend returned ${response.status}`
-          );
+          throw new Error(errorData?.detail || `Backend returned ${response.status}`);
         }
 
         const data = await response.json();
@@ -489,18 +553,19 @@ function App() {
     const conversationId = currentState.conversationId;
     const vectorStoreId = currentState.vectorStoreId;
     const controller = new AbortController();
+    const requestId = (requestIds.current[agentId] || 0) + 1;
 
+    requestIds.current[agentId] = requestId;
+    silentAbortRequests.current.delete(`${agentId}:${requestId}`);
     abortControllers.current[agentId] = controller;
 
     let finalResponse = "";
     let reasoning = "";
     let newConversationId = conversationId;
     let newVectorStoreId = vectorStoreId;
-
-    let activities = [
-      { id: "request", label: "Request received", status: "completed" },
-      { id: "processing", label: "Processing request", status: "active" },
-    ];
+    let currentEvent = null;
+    let eventHistory = [];
+    let summary = null;
 
     updateAgentState(agentId, {
       messages: [
@@ -509,7 +574,9 @@ function App() {
       ],
       loading: true,
       reasoning: "",
-      activities,
+      currentEvent: null,
+      eventHistory: [],
+      summary: null,
     });
 
     setInput("");
@@ -519,9 +586,17 @@ function App() {
       formData.append("agent", agentId);
       formData.append("message", userMessage);
 
-      if (conversationId) formData.append("conversation_id", conversationId);
-      if (vectorStoreId) formData.append("vector_store_id", vectorStoreId);
-      if (selectedFile) formData.append("file", selectedFile);
+      if (conversationId) {
+        formData.append("conversation_id", conversationId);
+      }
+
+      if (vectorStoreId) {
+        formData.append("vector_store_id", vectorStoreId);
+      }
+
+      if (selectedFile) {
+        formData.append("file", selectedFile);
+      }
 
       const response = await fetch(`${API_URL}/chat`, {
         method: "POST",
@@ -530,250 +605,170 @@ function App() {
       });
 
       if (!response.ok || !response.body) {
-        throw new Error(`Backend returned ${response.status}`);
-      }
+        let errorMessage = `Backend returned ${response.status}`;
 
-      const contentType = response.headers.get("content-type") || "";
+        try {
+          const errorData = await response.json();
+          errorMessage =
+            errorData?.detail || errorData?.message || errorMessage;
+        } catch {
+          // Ignore non-JSON error responses.
+        }
 
-      if (
-        contentType.includes("application/json") &&
-        !contentType.includes("ndjson")
-      ) {
-        const data = await response.json();
-
-        if (data.error) throw new Error(data.details || data.error);
-
-        finalResponse =
-          data.response ||
-          data.reply ||
-          "No response received from the agent.";
-
-        activities = activities.map((activity) => ({
-          ...activity,
-          status:
-            activity.status === "active" ? "completed" : activity.status,
-        }));
-
-        activities.push({
-          id: "response-completed",
-          label: "Response completed",
-          status: "completed",
-        });
-
-        setAgentStates((prev) => ({
-          ...prev,
-          [agentId]: {
-            ...prev[agentId],
-            conversationId: data.conversation_id || newConversationId,
-            loading: false,
-            reasoning: "",
-            activities,
-            messages: [
-              ...prev[agentId].messages,
-              { role: "assistant", content: finalResponse, activities },
-            ],
-          },
-        }));
-
-        return;
+        throw new Error(errorMessage);
       }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
 
+      const processEvent = (data) => {
+        if (requestIds.current[agentId] !== requestId) return;
+        if (!data) return;
+
+        if (data.event === "error") {
+          throw new Error(data.message || "Backend error");
+        }
+
+        if (data.event === "conversation_state") {
+          newConversationId =
+            data.conversation_id || newConversationId;
+          newVectorStoreId =
+            data.vector_store_id || newVectorStoreId;
+          return;
+        }
+
+        if (data.event === "text") {
+          finalResponse += data.delta || "";
+
+          updateAgentState(agentId, {
+            currentEvent,
+            eventHistory,
+            summary,
+            reasoning,
+          });
+
+          return;
+        }
+
+        if (data.event === "reasoning") {
+          reasoning += data.delta || "";
+          updateAgentState(agentId, { reasoning });
+          return;
+        }
+
+        if (data.event === "summary") {
+          const backendSummary = normalizeSummary(data.summary);
+
+          if (backendSummary) {
+            summary = backendSummary;
+
+            updateAgentState(agentId, {
+              currentEvent,
+              eventHistory,
+              summary,
+              reasoning,
+            });
+          }
+
+          return;
+        }
+
+        if (data.event === "activity") {
+          return;
+        }
+
+        if (data.event === "completed") {
+          newConversationId =
+            data.conversation_id || newConversationId;
+          newVectorStoreId =
+            data.vector_store_id || newVectorStoreId;
+
+          const backendSummary = normalizeSummary(data.summary);
+
+          if (backendSummary) {
+            summary = backendSummary;
+          }
+
+          return;
+        }
+
+        if (!data.type || !String(data.type).startsWith("response.")) {
+          return;
+        }
+
+        currentEvent = data;
+
+        if (!eventHistory.some((event) => event.type === data.type)) {
+          eventHistory = [...eventHistory, data];
+        }
+
+        const backendSummary = normalizeSummary(data.summary);
+
+        if (backendSummary) {
+          summary = backendSummary;
+        }
+
+        if (data.type === "response.output_text.delta") {
+          finalResponse += data.delta || "";
+        }
+
+        if (data.type === "response.reasoning_summary_text.delta") {
+          reasoning += data.delta || "";
+        }
+
+        updateAgentState(agentId, {
+          currentEvent,
+          eventHistory,
+          summary,
+          reasoning,
+        });
+      };
+
       while (true) {
         const { value, done } = await reader.read();
+
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
+
         const lines = buffer.split("\n");
         buffer = lines.pop() || "";
 
         for (const line of lines) {
           if (!line.trim()) continue;
 
-          let data;
-
           try {
-            data = JSON.parse(line);
-          } catch {
-            console.error("Invalid stream data:", line);
-            continue;
-          }
-
-          if (data.event === "reasoning") {
-            reasoning += data.delta || "";
-            updateAgentState(agentId, { reasoning });
-            continue;
-          }
-
-          if (data.event === "activity") {
-            if (data.type === "response.mcp_list_tools.in_progress") {
-              activities = activities.map((activity) =>
-                activity.id === "processing"
-                  ? { ...activity, status: "completed" }
-                  : activity
-              );
-
-              if (
-                !activities.some(
-                  (activity) => activity.id === "tool-discovery"
-                )
-              ) {
-                activities.push({
-                  id: "tool-discovery",
-                  label: "Discovering connected tools",
-                  status: "active",
-                });
-              }
-
-              updateAgentState(agentId, { activities });
-              continue;
-            }
-
-            if (data.type === "response.mcp_list_tools.completed") {
-              activities = activities.map((activity) =>
-                activity.id === "tool-discovery"
-                  ? { ...activity, status: "completed" }
-                  : activity
-              );
-
-              if (
-                !activities.some(
-                  (activity) => activity.id === "tools-discovered"
-                )
-              ) {
-                activities.push({
-                  id: "tools-discovered",
-                  label: "Connected tools discovered",
-                  status: "completed",
-                });
-              }
-
-              updateAgentState(agentId, { activities });
-              continue;
-            }
-
-            if (data.type === "response.mcp_list_tools.failed") {
-              activities = activities.map((activity) =>
-                activity.id === "tool-discovery"
-                  ? {
-                      ...activity,
-                      label: "Tool discovery failed",
-                      status: "failed",
-                    }
-                  : activity
-              );
-
-              updateAgentState(agentId, { activities });
-              continue;
-            }
-
-            if (data.type === "response.mcp_call.in_progress") {
-              activities = activities.map((activity) =>
-                activity.id === "processing"
-                  ? { ...activity, status: "completed" }
-                  : activity
-              );
-
-              const toolName =
-                data.name || data.server_label || "connected tool";
-
-              activities.push({
-                id: `mcp-call-${data.item_id || Date.now()}`,
-                label: `Executing ${toolName}`,
-                status: "active",
-              });
-
-              updateAgentState(agentId, { activities });
-              continue;
-            }
-
-            if (data.type === "response.mcp_call.completed") {
-              activities = activities.map((activity) =>
-                activity.id === `mcp-call-${data.item_id}`
-                  ? { ...activity, status: "completed" }
-                  : activity
-              );
-
-              updateAgentState(agentId, { activities });
-              continue;
-            }
-
-            if (data.type === "response.mcp_call.failed") {
-              activities = activities.map((activity) =>
-                activity.id === `mcp-call-${data.item_id}`
-                  ? {
-                      ...activity,
-                      label: "Tool execution failed",
-                      status: "failed",
-                    }
-                  : activity
-              );
-
-              updateAgentState(agentId, { activities });
-              continue;
-            }
-          }
-
-          if (data.event === "text") {
-            finalResponse += data.delta || "";
-
-            if (!activities.some((activity) => activity.id === "preparing")) {
-              activities = activities.map((activity) =>
-                activity.status === "active"
-                  ? { ...activity, status: "completed" }
-                  : activity
-              );
-
-              activities.push({
-                id: "preparing",
-                label: "Preparing response",
-                status: "active",
-              });
-            }
-
-            updateAgentState(agentId, { activities });
-            continue;
-          }
-
-          if (data.event === "completed") {
-            newConversationId = data.conversation_id;
-            newVectorStoreId =
-              data.vector_store_id || newVectorStoreId;
-
-            activities = activities.map((activity) => ({
-              ...activity,
-              status:
-                activity.status === "active"
-                  ? "completed"
-                  : activity.status,
-            }));
-
+            processEvent(JSON.parse(line));
+          } catch (error) {
             if (
-              !activities.some(
-                (activity) => activity.id === "response-completed"
-              )
+              error.message &&
+              !error.message.includes("Unexpected token")
             ) {
-              activities.push({
-                id: "response-completed",
-                label: "Response completed",
-                status: "completed",
-              });
+              throw error;
             }
 
-            updateAgentState(agentId, { activities });
-            continue;
-          }
-
-          if (data.event === "error") {
-            throw new Error(data.message || "Backend error");
+            console.error("Invalid stream data:", line);
           }
         }
-
-        updateAgentState(agentId, { reasoning, activities });
       }
+
+      if (buffer.trim()) {
+        try {
+          processEvent(JSON.parse(buffer));
+        } catch (error) {
+          if (
+            error.message &&
+            !error.message.includes("Unexpected token")
+          ) {
+            throw error;
+          }
+
+          console.error("Invalid final stream data:", buffer);
+        }
+      }
+
+      if (requestIds.current[agentId] !== requestId) return;
 
       setAgentStates((prev) => ({
         ...prev,
@@ -783,27 +778,39 @@ function App() {
           vectorStoreId: newVectorStoreId,
           loading: false,
           reasoning: "",
-          activities,
+          currentEvent,
+          eventHistory,
+          summary,
           messages: [
             ...prev[agentId].messages,
             {
               role: "assistant",
               content: finalResponse,
-              reasoning,
-              activities,
+              eventHistory,
+              summary,
             },
           ],
         },
       }));
     } catch (error) {
+      if (requestIds.current[agentId] !== requestId) return;
+
       if (error.name === "AbortError") {
+        const silent = silentAbortRequests.current.has(
+          `${agentId}:${requestId}`
+        );
+
+        if (silent || requestIds.current[agentId] !== requestId) return;
+
         setAgentStates((prev) => ({
           ...prev,
           [agentId]: {
             ...prev[agentId],
             loading: false,
             reasoning: "",
-            activities,
+            currentEvent,
+            eventHistory,
+            summary,
             messages: [
               ...prev[agentId].messages,
               ...(finalResponse
@@ -811,8 +818,8 @@ function App() {
                     {
                       role: "assistant",
                       content: finalResponse,
-                      reasoning,
-                      activities,
+                      eventHistory,
+                      summary,
                     },
                   ]
                 : []),
@@ -832,12 +839,16 @@ function App() {
           ...prev[agentId],
           loading: false,
           reasoning: "",
-          activities: [],
+          currentEvent,
+          eventHistory,
+          summary,
           messages: [
             ...prev[agentId].messages,
             {
               role: "assistant",
               content: `Agent error: ${error.message}`,
+              eventHistory,
+              summary,
             },
           ],
         },
@@ -850,28 +861,37 @@ function App() {
   };
 
   const handleAgentChange = (agent) => {
-    setSelectedAgent(agent);
     setInput("");
     setSelectedFile(null);
+    setSelectedAgent(agent);
+    setCurrentView("chat");
   };
 
   const openAgent = (agent) => {
-    handleAgentChange(agent);
+    setInput("");
+    setSelectedFile(null);
+    setSelectedAgent(agent);
     setCurrentView("chat");
   };
 
   const startNewChat = () => {
-    if (currentState.loading) stopResponse(selectedAgent.id);
+    const agentId = selectedAgent.id;
+    const activeRequestId = requestIds.current[agentId];
+    const controller = abortControllers.current[agentId];
 
-    updateAgentState(selectedAgent.id, {
-      conversationId: null,
-      vectorStoreId: null,
-      messages: [],
-      loading: false,
-      reasoning: "",
-      activities: [],
-    });
+    if (controller && activeRequestId != null) {
+      silentAbortRequests.current.add(
+        `${agentId}:${activeRequestId}`
+      );
+      requestIds.current[agentId] = activeRequestId + 1;
+      abortControllers.current[agentId] = null;
+      controller.abort();
+    } else {
+      requestIds.current[agentId] =
+        (requestIds.current[agentId] || 0) + 1;
+    }
 
+    updateAgentState(agentId, createAgentState());
     setInput("");
     setSelectedFile(null);
   };
@@ -898,6 +918,28 @@ function App() {
     if (file) setSelectedFile(file);
   };
 
+  const renderLiveActivity = () => {
+    const event = currentState.currentEvent;
+
+    if (!event) return null;
+
+    return (
+      <div className="agent-activity">
+        <div className="activity-header">
+          <span className="activity-icon">✦</span>
+          <span>Agent Activity</span>
+        </div>
+
+        <div className="activity-current">
+          <div className="activity-current-status">
+            <span className="activity-status">●</span>
+            <span>{event.type}</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderAgentInfo = () => {
     const model =
       liveMetadata?.model ||
@@ -913,7 +955,11 @@ function App() {
       )
       .filter(Boolean);
 
-    const modelDescription = getModelDescription(model);
+    const modelDescription = getModelDescription(
+      model,
+      selectedAgent,
+      liveMetadata
+    );
 
     return (
       <aside
@@ -961,14 +1007,18 @@ function App() {
         {!isInfoSidebarCollapsed && (
           <div className="agent-info-content">
             <section className="agent-info-section">
-              <span className="agent-info-section-title">Overview</span>
+              <span className="agent-info-section-title">
+                Overview
+              </span>
               <p className="agent-info-overview">
                 {selectedAgent.description}
               </p>
             </section>
 
             <section className="agent-info-section">
-              <span className="agent-info-section-title">Architecture</span>
+              <span className="agent-info-section-title">
+                Architecture
+              </span>
 
               <div className="architecture-placeholder">
                 {selectedAgent.architectureImage ? (
@@ -978,7 +1028,9 @@ function App() {
                   />
                 ) : (
                   <div className="architecture-placeholder-content">
-                    <span className="architecture-placeholder-icon">◇</span>
+                    <span className="architecture-placeholder-icon">
+                      ◇
+                    </span>
                     <span>Architecture diagram</span>
                     <small>to be.</small>
                   </div>
@@ -987,7 +1039,15 @@ function App() {
             </section>
 
             <section className="agent-info-section">
-              <span className="agent-info-section-title">Model</span>
+              <span className="agent-info-section-title">
+                Model
+              </span>
+
+              {metadataLoading && (
+                <div className="agent-info-loading">
+                  Loading live configuration...
+                </div>
+              )}
 
               <InfoTooltip
                 id={`model-${selectedAgent.id}`}
@@ -995,12 +1055,6 @@ function App() {
                 description={modelDescription}
                 icon={getModelIcon(model)}
               />
-
-              {metadataLoading && (
-                <div className="agent-info-loading">
-                  Loading live configuration...
-                </div>
-              )}
             </section>
 
             <section className="agent-info-section">
@@ -1015,20 +1069,26 @@ function App() {
                       key={`${getToolName(source)}-${index}`}
                       id={`knowledge-${selectedAgent.id}-${index}`}
                       label={getToolName(source)}
-                      description={getKnowledgeSourceDescription(source)}
+                      description={getKnowledgeSourceDescription(
+                        source,
+                        selectedAgent
+                      )}
                       icon={getToolIcon(source)}
                     />
                   ))}
                 </div>
               ) : (
                 <div className="agent-info-empty">
-                  No knowledge source was found in the live agent definition.
+                  No knowledge source was found in the live agent
+                  definition.
                 </div>
               )}
             </section>
 
             <section className="agent-info-section">
-              <span className="agent-info-section-title">Tools</span>
+              <span className="agent-info-section-title">
+                Tools
+              </span>
 
               {regularTools.length > 0 ? (
                 <div className="agent-info-list">
@@ -1041,7 +1101,10 @@ function App() {
                           ? "Web Search"
                           : getToolName(tool)
                       }
-                      description={getToolDescription(tool)}
+                      description={getToolDescription(
+                        tool,
+                        selectedAgent
+                      )}
                       icon={getToolIcon(tool)}
                     />
                   ))}
@@ -1139,7 +1202,7 @@ function App() {
 
             <div className="catalog-count">
               <strong>{filteredAgents.length}</strong>
-              <span>available agents</span>
+              <span>Available Agents</span>
             </div>
           </div>
 
@@ -1152,44 +1215,81 @@ function App() {
                 <strong>Services</strong>
               </div>
 
-              {serviceOptions
-                .filter((service) =>
-                  searchMatches.some((agent) =>
-                    agent.services.includes(service.key)
-                  )
-                )
-                .map((service) => {
-                  const count = searchMatches.filter((agent) =>
-                    agent.services.includes(service.key)
-                  ).length;
+              {["Technology", "Tool"].map((group) => {
+                const groupServices = serviceOptions.filter(
+                  (service) =>
+                    service.type === group &&
+                    searchMatches.some((agent) =>
+                      agent.services.includes(service.key)
+                    )
+                );
 
-                  const isChecked = catalogServices.includes(service.key);
+                if (groupServices.length === 0) return null;
 
-                  return (
-                    <label
-                      className="catalog-filter-option"
-                      key={service.key}
+                const isOpen = openServiceGroups[group];
+
+                return (
+                  <div
+                    className="catalog-service-group"
+                    key={group}
+                  >
+                    <button
+                      type="button"
+                      className="catalog-service-group-header"
+                      onClick={() =>
+                        setOpenServiceGroups((previous) => ({
+                          ...previous,
+                          [group]: !previous[group],
+                        }))
+                      }
+                      aria-expanded={isOpen}
                     >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() =>
-                          toggleCatalogService(service.key)
-                        }
-                      />
+                      <span>{group}</span>
 
-                      <span>
-                        {service.label}
-
-                        <small className="catalog-filter-type">
-                          {service.type}
-                        </small>
+                      <span
+                        className={`catalog-service-group-chevron ${
+                          isOpen ? "open" : ""
+                        }`}
+                        aria-hidden="true"
+                      >
+                        ›
                       </span>
+                    </button>
 
-                      <small>{count}</small>
-                    </label>
-                  );
-                })}
+                    {isOpen && (
+                      <div className="catalog-service-group-options">
+                        {groupServices.map((service) => {
+                          const count = searchMatches.filter((agent) =>
+                            agent.services.includes(service.key)
+                          ).length;
+
+                          const isChecked =
+                            catalogServices.includes(service.key);
+
+                          return (
+                            <label
+                              className="catalog-filter-option"
+                              key={service.key}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={() =>
+                                  toggleCatalogService(service.key)
+                                }
+                              />
+
+                              <span>{service.label}</span>
+
+                              <small>{count}</small>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </aside>
 
             <section className="catalog-results">
@@ -1235,19 +1335,6 @@ function App() {
                       onClick={() => openAgent(agent)}
                       type="button"
                     >
-                      <div className="agent-template-topline">
-                        <span className="agent-template-icon">
-                          {agent.shortName.charAt(0)}
-                        </span>
-
-                        <span
-                          className="agent-template-arrow"
-                          aria-hidden="true"
-                        >
-                          &#8599;
-                        </span>
-                      </div>
-
                       <div className="agent-template-body">
                         <span className="agent-template-technology">
                           {agent.technology}
@@ -1259,7 +1346,10 @@ function App() {
                       </div>
 
                       <span className="agent-template-action">
-                        Open agent <span aria-hidden="true">&#8594;</span>
+                        Open agent{" "}
+                        <span aria-hidden="true">
+                          &#8594;
+                        </span>
                       </span>
                     </button>
                   ))}
@@ -1282,7 +1372,11 @@ function App() {
 
   return (
     <div className="app">
-      <aside className={isSidebarCollapsed ? "sidebar collapsed" : "sidebar"}>
+      <aside
+        className={
+          isSidebarCollapsed ? "sidebar collapsed" : "sidebar"
+        }
+      >
         <div className="brand">
           <div className="brand-mark">
             <img
@@ -1345,17 +1439,11 @@ function App() {
             return (
               <button
                 key={agent.id}
-                className={`agent-item ${isActive ? "active" : ""}`}
+                className={`agent-item ${
+                  isActive ? "active" : ""
+                }`}
                 onClick={() => handleAgentChange(agent)}
               >
-                <div
-                  className={`agent-icon ${
-                    isActive ? "active-icon" : ""
-                  }`}
-                >
-                  {agent.shortName.charAt(0)}
-                </div>
-
                 <div className="agent-info">
                   <div className="agent-name">{agent.name}</div>
 
@@ -1391,7 +1479,17 @@ function App() {
 
       <main className="chat-container">
         <header className="chat-header">
-          <div className="header-agent">
+          <div
+            className="header-agent"
+            style={{
+              justifyContent: "flex-start",
+              alignItems: "center",
+              marginRight: "auto",
+              width: "auto",
+              flex: "0 1 auto",
+              textAlign: "left",
+            }}
+          >
             <button
               className="back-to-catalog"
               onClick={() => setCurrentView("catalog")}
@@ -1400,10 +1498,6 @@ function App() {
             >
               &#8592;
             </button>
-
-            <div className="header-agent-icon">
-              {selectedAgent.shortName.charAt(0)}
-            </div>
 
             <div>
               <h2>{selectedAgent.name}</h2>
@@ -1498,27 +1592,50 @@ function App() {
                 >
                   {message.role === "assistant" ? (
                     <div className="markdown-content">
-                      {message.reasoning && (
-                        <div className="reasoning-box">
-                          <div className="reasoning-title">
-                            Reasoning
-                          </div>
-
-                          <div className="reasoning-content">
-                            <ReactMarkdown
-                              remarkPlugins={[remarkGfm]}
-                            >
-                              {message.reasoning}
-                            </ReactMarkdown>
-                          </div>
-                        </div>
-                      )}
-
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                       >
                         {message.content}
                       </ReactMarkdown>
+
+                      {message.summary && (
+                        <details className="activity-summary completed-summary">
+                          <summary>
+                            <span>Summary</span>
+
+                            <span
+                              className="summary-chevron"
+                              aria-hidden="true"
+                            >
+                              ›
+                            </span>
+                          </summary>
+
+                          <div className="summary-list">
+                            {Array.isArray(message.summary) ? (
+                              message.summary.map(
+                                (item, itemIndex) => (
+                                  <div
+                                    className="summary-item"
+                                    key={`${item}-${itemIndex}`}
+                                  >
+                                    <span>•</span>
+                                    <span>{item}</span>
+                                  </div>
+                                )
+                              )
+                            ) : (
+                              <div className="summary-content">
+                                <ReactMarkdown
+                                  remarkPlugins={[remarkGfm]}
+                                >
+                                  {String(message.summary)}
+                                </ReactMarkdown>
+                              </div>
+                            )}
+                          </div>
+                        </details>
+                      )}
                     </div>
                   ) : (
                     message.content
@@ -1533,51 +1650,7 @@ function App() {
               <div className="message-avatar">✦</div>
 
               <div className="assistant-bubble loading-bubble">
-                {currentState.reasoning && (
-                  <div className="reasoning-box">
-                    <div className="reasoning-title">
-                      Reasoning
-                    </div>
-
-                    <div className="reasoning-content">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                      >
-                        {currentState.reasoning}
-                      </ReactMarkdown>
-                    </div>
-                  </div>
-                )}
-
-                {currentState.activities.length > 0 && (
-                  <div className="agent-activity">
-                    <div className="activity-header">
-                      <span className="activity-icon">✦</span>
-                      <span>Agent Activity</span>
-                    </div>
-
-                    <div className="activity-list">
-                      {currentState.activities.map(
-                        (activity) => (
-                          <div
-                            key={activity.id}
-                            className={`activity-item ${activity.status}`}
-                          >
-                            <span className="activity-status">
-                              {activity.status === "completed"
-                                ? "✓"
-                                : activity.status === "failed"
-                                ? "!"
-                                : "●"}
-                            </span>
-
-                            <span>{activity.label}</span>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  </div>
-                )}
+                {renderLiveActivity()}
 
                 <div className="loading-content">
                   <div className="loading-indicator">
@@ -1673,6 +1746,104 @@ function App() {
 
       {renderAgentInfo()}
     </div>
+  );
+}
+
+function App() {
+  return (
+    <>
+      <style>{`
+        .header-agent {
+          justify-content: flex-start !important;
+          align-items: center !important;
+          margin-right: auto !important;
+          width: auto !important;
+          text-align: left !important;
+        }
+
+        .completed-summary {
+          margin-top: 18px;
+          padding-top: 14px;
+          border-top: 1px solid var(--border-color);
+        }
+
+        .completed-summary > summary {
+          list-style: none;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          cursor: pointer;
+          padding: 2px 0;
+          font-size: 12px;
+          font-weight: 600;
+        }
+
+        .completed-summary > summary::-webkit-details-marker {
+          display: none;
+        }
+
+        .completed-summary > summary::marker {
+          display: none;
+          content: "";
+        }
+
+        .summary-chevron {
+          margin-left: auto;
+          font-size: 18px;
+          line-height: 1;
+          transition: transform .18s ease;
+        }
+
+        .completed-summary[open] .summary-chevron {
+          transform: rotate(90deg);
+        }
+
+        .completed-summary .summary-list {
+          padding-top: 12px;
+        }
+
+        .completed-summary .summary-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 9px;
+          margin-bottom: 8px;
+          font-size: 12px;
+          line-height: 1.5;
+        }
+
+        .completed-summary .summary-item > span:first-child {
+          flex: 0 0 auto;
+          opacity: .65;
+        }
+
+        .catalog-service-group-header {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          border: 0;
+          background: transparent;
+          cursor: pointer;
+          padding: 8px 0;
+        }
+
+        .catalog-service-group-chevron {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+          line-height: 1;
+          transition: transform .18s ease;
+        }
+
+        .catalog-service-group-chevron.open {
+          transform: rotate(90deg);
+        }
+      `}</style>
+
+      <AgentApp />
+    </>
   );
 }
 
