@@ -1,7 +1,0 @@
-fastapi
-uvicorn
-python-dotenv
-requests
-azure-ai-projects
-azure-identity
-python-pptx
